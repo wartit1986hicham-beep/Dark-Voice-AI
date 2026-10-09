@@ -3,52 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Voice AI - محول النص إلى صوت</title>
+    <title>Dark Voice AI - محول النص إلى صوت الاحترافي</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; max-width: 500px; text-align: center; }
-        h2 { color: #ffffff; margin-bottom: 20px; }
-        textarea { width: 100%; height: 120px; padding: 12px; background: #2d2d2d; color: #ffffff; border: 1px solid #444; border-radius: 8px; resize: none; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
-        select, button { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; box-sizing: border-box; }
-        select { background: #2d2d2d; color: #ffffff; }
-        button { background: #bb86fc; color: #121212; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #3700b3; color: #ffffff; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: radial-gradient(circle at center, #14141f 0%, #08080c 100%); 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .container { 
+            background: rgba(20, 20, 30, 0.75); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 35px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(187, 134, 252, 0.1); 
+            border: 1px solid rgba(187, 134, 252, 0.2);
+            width: 100%; 
+            max-width: 550px; 
+            text-align: center; 
+        }
+        h2 { 
+            color: #ffffff; 
+            margin-bottom: 5px; 
+            font-size: 28px;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #bb86fc, #03dac6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p.subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .quick-phrases {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(187, 134, 252, 0.3);
+            color: #bb86fc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .chip:hover {
+            background: #bb86fc;
+            color: #121212;
+        }
+        textarea { 
+            width: 100%; 
+            height: 130px; 
+            padding: 15px; 
+            background: rgba(10, 10, 15, 0.9); 
+            color: #ffffff; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            resize: none; 
+            font-size: 16px; 
+            margin-bottom: 5px; 
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            border-color: #bb86fc;
+            outline: none;
+            box-shadow: 0 0 8px rgba(187, 134, 252, 0.3);
+        }
+        .counter {
+            text-align: left;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+        label.range-label {
+            display: block;
+            text-align: right;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 15px;
+            accent-color: #bb86fc;
+        }
+        select, button { 
+            width: 100%; 
+            padding: 13px; 
+            font-size: 15px; 
+            border-radius: 12px; 
+            border: none; 
+            margin-bottom: 12px; 
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        select { 
+            background: rgba(10, 10, 15, 0.9); 
+            color: #ffffff; 
+            border: 1px solid #333; 
+        }
+        .btn-play { background: linear-gradient(135deg, #bb86fc, #9955e8); color: #121212; box-shadow: 0 4px 15px rgba(187,134,252,0.3); }
+        .btn-play:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-stop { background: rgba(207, 102, 121, 0.2); color: #cf6679; border: 1px solid #cf6679; }
+        .btn-stop:hover { background: #cf6679; color: #fff; }
+        .btn-download { background: linear-gradient(135deg, #03dac6, #018786); color: #121212; display: none; }
+        .btn-download:hover { opacity: 0.9; }
+        #status { font-size: 13px; color: #03dac6; margin-top: 10px; min-height: 20px; font-weight: 500; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Dark Voice AI</h2>
-        <textarea id="textInput" placeholder="اكتب هنا النص بالعربية أو بالدارجة..."></textarea>
+        <p class="subtitle">محول النص إلى صوت الاحترافي (فصحى ودارجة)</p>
+        
+        <!-- عبارات سريعة للتجربة -->
+        <div class="quick-phrases">
+            <span class="chip" onclick="setPhrase('كيف داير مع الصحة، كلشي مزيان؟')">🇲🇦 الدارجة</span>
+            <span class="chip" onclick="setPhrase('مرحباً بك في موقع الذكاء الاصطناعي الصوتي.')">🇸🇦 فصحى</span>
+            <span class="chip" onclick="setPhrase('السلام عليكم، تبارك الله عليك.')">✨ تحية</span>
+        </div>
+
+        <textarea id="textInput" placeholder="اكتب هنا النص بالعربية أو بالدارجة المغربية..." oninput="updateCounter()"></textarea>
+        <div class="counter" id="charCounter">0 حرف | 0 كلمة</div>
+
         <select id="voiceSelect"></select>
-        <button onclick="speakText()">استماع للصوت</button>
+
+        <label class="range-label" id="rateLabel">سرعة الصوت: 1.0x</label>
+        <input type="range" id="rateRange" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateRateLabel()">
+        
+        <button class="btn-play" onclick="speakText()">🎙️ استماع للصوت</button>
+        <button class="btn-stop" onclick="stopSpeech()">⏹️ إيقاف</button>
+        <button id="downloadBtn" class="btn-download" onclick="downloadAudio()">📥 تحميل الملف الصوتي</button>
+        
+        <div id="status"></div>
     </div>
+
     <script>
         const synth = window.speechSynthesis;
-        const textInput = id => document.getElementById(id);
         let voices = [];
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+
         function populateVoiceList() {
             voices = synth.getVoices();
-            let voiceSelect = textInput('voiceSelect');
+            const voiceSelect = document.getElementById('voiceSelect');
             voiceSelect.innerHTML = '';
-            let arabicVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('AR') || v.lang.includes('ar-'));
-            if (arabicVoices.length === 0) arabicVoices = voices; 
-            arabicVoices.forEach((voice) => {
+            
+            // ترتيب الأصوات لتكون العربية والمغربية والفرنسية في المقدمة
+            voices.sort((a, b) => {
+                const langA = a.lang.toLowerCase();
+                const langB = b.lang.toLowerCase();
+                const isArFrA = langA.includes('ar') || langA.includes('ma') || langA.includes('fr');
+                const isArFrB = langB.includes('ar') || langB.includes('ma') || langB.includes('fr');
+                return isArFrB - isArFrA;
+            });
+            
+            voices.forEach((voice, index) => {
                 const option = document.createElement('option');
-                option.value = voices.indexOf(voice);
+                option.value = index;
                 option.textContent = `${voice.name} (${voice.lang})`;
                 voiceSelect.appendChild(option);
             });
         }
+
         populateVoiceList();
-        if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoiceList;
-        function speakText() {
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoiceList;
+        }
+
+        function setPhrase(text) {
+            document.getElementById('textInput').value = text;
+            updateCounter();
+        }
+
+        function updateCounter() {
+            const text = document.getElementById('textInput').value;
+            const chars = text.length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            document.getElementById('charCounter').textContent = `${chars} حرف | ${words} كلمة`;
+        }
+
+        function updateRateLabel() {
+            const rate = document.getElementById('rateRange').value;
+            document.getElementById('rateLabel').textContent = `سرعة الصوت: ${rate}x`;
+        }
+
+        async function speakText() {
             if (synth.speaking) synth.cancel();
-            if (textInput('textInput').value !== '') {
-                const utterThis = new SpeechSynthesisUtterance(textInput('textInput').value);
-                const selectedOption = textInput('voiceSelect'].value;
-                utterThis.voice = voices[selectedOption];
-                synth.speak(utterThis);
+            const text = document.getElementById('textInput').value;
+            if (text.trim() === '') {
+                document.getElementById('status').textContent = '⚠️ الرجاء كتابة نص أولاً!';
+                return;
             }
+
+            const utterThis = new SpeechSynthesisUtterance(text);
+            const selectedIndex = document.getElementById('voiceSelect').value;
+            if (voices[selectedIndex]) {
+                utterThis.voice = voices[selectedIndex];
+            }
+            utterThis.rate = parseFloat(document.getElementById('rateRange').value);
+
+            document.getElementById('status').textContent = '🔊 جاري قراءة النص...';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    downloadBtn.style.display = 'block';
+                    document.getElementById('status').textContent = '✨ تم تجهيز الملف الصوتي للتحميل بنجاح!';
+                };
+
+                mediaRecorder.start();
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, Math.max(3000, text.length * 150));
+            } catch (e) {
+                console.log('وضع القراءة الصوتية مفعل.');
+            }
+
+            utterThis.onend = () => {
+                document.getElementById('status').textContent = '✔️ انتهت القراءة.';
+            };
+
+            synth.speak(utterThis);
+        }
+
+        function stopSpeech() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            document.getElementById('status').textContent = '⏹️ تم إيقاف الصوت.';
+        }
+
+        function downloadAudio() {
+            if (!audioBlob) return;
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'Dark-Voice-AI.mp3';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
         }
     </script>
 </body>
