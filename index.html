@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Voice AI</title>
+    <title>Dark Voice AI - تحويل النص إلى صوت</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -19,56 +19,92 @@
         }
         .card {
             background: #1e293b;
-            padding: 30px;
+            padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             text-align: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             border: 1px solid #334155;
         }
-        h1 {
-            color: #c084fc;
-            margin-bottom: 8px;
+        h1 { color: #c084fc; margin-bottom: 5px; }
+        p { color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
+        textarea {
+            width: 100%;
+            height: 180px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px;
+            font-size: 1em;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 15px;
+            font-family: inherit;
         }
-        p {
-            color: #94a3b8;
-            font-size: 0.9em;
-            margin-bottom: 25px;
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         .btn {
+            flex: 1;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             color: white;
             border: none;
-            padding: 14px 28px;
+            padding: 14px;
             border-radius: 10px;
-            font-size: 1.1em;
+            font-size: 1em;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-            width: 100%;
+            transition: opacity 0.2s;
         }
-        .btn:active {
-            transform: scale(0.98);
+        .btn-stop {
+            background: #ef4444;
+            flex: 0.4;
         }
+        .btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Dark Voice AI</h1>
-    <p>تشغيل المقطع الصوتي بالدارجة المغربية</p>
+    <h1>Dark Voice AI 🎙️</h1>
+    <p>أداة تحويل النص إلى صوت باللغة العربية</p>
     
-    <button class="btn" onclick="playDarija()">🔊 استماع بصوتك الشخصي</button>
+    <textarea id="textInput" placeholder="اكتب النص باللغة العربية أو الدارجة هنا..."></textarea>
+    
+    <div class="controls">
+        <button class="btn" onclick="speakText()">🔊 قراءة النص</button>
+        <button class="btn btn-stop" onclick="stopText()">⏹️ إيقاف</button>
+    </div>
 </div>
 
 <script>
-    function playDarija() {
-        // تشغيل الملف المرفوع مباشرة
-        let audio = new Audio('Darija.mp3');
-        audio.play().catch(function(error) {
-            alert("وقع مشكل فـ تشغيل الصوت، تأكد من تحديث الصفحة!");
-        });
+    function speakText() {
+        const text = document.getElementById('textInput').value;
+
+        if (!text.trim()) {
+            alert("المرجو كتابة نص أولاً!");
+            return;
+        }
+
+        // إلغاء أي قراءة سابقة
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // ضبط اللغة إلى العربية
+        utterance.lang = 'ar-SA'; 
+        utterance.rate = 0.9; // سرعة القراءة
+        utterance.pitch = 1;  // درجة الصوت
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopText() {
+        window.speechSynthesis.cancel();
     }
 </script>
 
