@@ -100,9 +100,9 @@
     <p>تحويل النصوص الطويلة وتسجيل الصوت للتحميل</p>
 
     <div class="form-group">
-        <label for="languageSelect">اختر اللغة / الصوت:</label>
+        <label for="languageSelect">الصوت المختار (اللغة العربية):</label>
         <select id="languageSelect">
-            <option value="">جاري تحميل اللغات المتاحة...</option>
+            <option value="">جاري البحث عن أصوات العربية...</option>
         </select>
     </div>
 
@@ -135,16 +135,30 @@
         voices = window.speechSynthesis.getVoices();
         voiceSelect.innerHTML = '';
 
-        voices.forEach((voice, index) => {
+        // تصفية وإظهار الأصوات العربية أولاً أو إدراج جميع الأصوات المتاحة مع تمييز العربية
+        let arabicVoices = voices.filter(voice => voice.lang.toLowerCase().includes('ar'));
+        
+        // إذا لم يجد أصوات عربية صريحة، اعرض الكل
+        const targetVoices = arabicVoices.length > 0 ? arabicVoices : voices;
+
+        targetVoices.forEach((voice) => {
             const option = document.createElement('option');
             option.textContent = `${voice.name} (${voice.lang})`;
-            option.value = index;
-
-            if (voice.lang.includes('ar')) {
+            option.value = voices.indexOf(voice);
+            if (voice.lang.toLowerCase().includes('ar')) {
                 option.selected = true;
             }
             voiceSelect.appendChild(option);
         });
+
+        if(voiceSelect.options.length === 0) {
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.value = index;
+                voiceSelect.appendChild(option);
+            });
+        }
     }
 
     populateVoiceList();
@@ -158,7 +172,10 @@
 
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        if (voiceSelect.value !== "") utterance.voice = voices[voiceSelect.value];
+        
+        if (voiceSelect.value !== "") {
+            utterance.voice = voices[voiceSelect.value];
+        }
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
     }
@@ -167,7 +184,6 @@
         window.speechSynthesis.cancel();
     }
 
-    // تسجيل مخرجات الصوت وتحويلها إلى ملف قابل للتحميل
     async function recordAndDownload() {
         const text = textInput.value;
         if (!text.trim()) return alert("المرجو كتابة نص أولاً!");
@@ -194,7 +210,6 @@
             mediaRecorder.start();
             speakText();
 
-            // إيقاف التسجيل عند انتهاء القراءة
             const checkSpeaking = setInterval(() => {
                 if (!window.speechSynthesis.speaking) {
                     mediaRecorder.stop();
