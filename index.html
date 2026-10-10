@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Voice AI - تحويل النص إلى صوت</title>
+    <title>Dark Voice AI - تحويل النصوص وتسجيل الصوت</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -24,14 +24,24 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             text-align: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             border: 1px solid #334155;
         }
         h1 { color: #c084fc; margin-bottom: 5px; }
         p { color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
-        textarea {
+        
+        .form-group {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+            font-size: 0.9em;
+        }
+        select, textarea {
             width: 100%;
-            height: 180px;
             background: #0f172a;
             border: 1px solid #475569;
             border-radius: 10px;
@@ -39,72 +49,162 @@
             padding: 12px;
             font-size: 1em;
             box-sizing: border-box;
-            resize: vertical;
-            margin-bottom: 15px;
             font-family: inherit;
         }
+        textarea {
+            height: 200px;
+            resize: vertical;
+        }
+        .char-counter {
+            text-align: left;
+            font-size: 0.8em;
+            color: #64748b;
+            margin-top: 5px;
+        }
         .controls {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-top: 15px;
         }
         .btn {
-            flex: 1;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             color: white;
             border: none;
             padding: 14px;
             border-radius: 10px;
-            font-size: 1em;
+            font-size: 0.95em;
             font-weight: bold;
             cursor: pointer;
             transition: opacity 0.2s;
         }
+        .btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            grid-column: span 2;
+        }
         .btn-stop {
             background: #ef4444;
-            flex: 0.4;
         }
         .btn:hover { opacity: 0.9; }
+        #audioPlayer {
+            width: 100%;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Dark Voice AI 🎙️</h1>
-    <p>أداة تحويل النص إلى صوت باللغة العربية</p>
-    
-    <textarea id="textInput" placeholder="اكتب النص باللغة العربية أو الدارجة هنا..."></textarea>
+    <p>تحويل النصوص الطويلة وتسجيل الصوت للتحميل</p>
+
+    <div class="form-group">
+        <label for="languageSelect">اختر اللغة / الصوت:</label>
+        <select id="languageSelect">
+            <option value="">جاري تحميل اللغات المتاحة...</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="textInput">النص (حتى 10,000 حرف):</label>
+        <textarea id="textInput" maxlength="10000" placeholder="اكتب أو الصق نصك هنا..." oninput="updateCounter()"></textarea>
+        <div class="char-counter"><span id="charCount">0</span> / 10000 حرف</div>
+    </div>
     
     <div class="controls">
-        <button class="btn" onclick="speakText()">🔊 قراءة النص</button>
+        <button class="btn" onclick="speakText()">🔊 استماع فقط</button>
         <button class="btn btn-stop" onclick="stopText()">⏹️ إيقاف</button>
+        <button class="btn btn-download" onclick="recordAndDownload()">إعداد وتسجيل الصوت للتحميل 📥</button>
     </div>
+
+    <audio id="audioPlayer" controls></audio>
 </div>
 
 <script>
+    let voices = [];
+    const voiceSelect = document.getElementById('languageSelect');
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+
+    function updateCounter() {
+        charCount.textContent = textInput.value.length;
+    }
+
+    function populateVoiceList() {
+        voices = window.speechSynthesis.getVoices();
+        voiceSelect.innerHTML = '';
+
+        voices.forEach((voice, index) => {
+            const option = document.createElement('option');
+            option.textContent = `${voice.name} (${voice.lang})`;
+            option.value = index;
+
+            if (voice.lang.includes('ar')) {
+                option.selected = true;
+            }
+            voiceSelect.appendChild(option);
+        });
+    }
+
+    populateVoiceList();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
     function speakText() {
-        const text = document.getElementById('textInput').value;
+        const text = textInput.value;
+        if (!text.trim()) return alert("المرجو كتابة نص أولاً!");
 
-        if (!text.trim()) {
-            alert("المرجو كتابة نص أولاً!");
-            return;
-        }
-
-        // إلغاء أي قراءة سابقة
         window.speechSynthesis.cancel();
-
         const utterance = new SpeechSynthesisUtterance(text);
-        
-        // ضبط اللغة إلى العربية
-        utterance.lang = 'ar-SA'; 
-        utterance.rate = 0.9; // سرعة القراءة
-        utterance.pitch = 1;  // درجة الصوت
-
+        if (voiceSelect.value !== "") utterance.voice = voices[voiceSelect.value];
+        utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
     }
 
     function stopText() {
         window.speechSynthesis.cancel();
+    }
+
+    // تسجيل مخرجات الصوت وتحويلها إلى ملف قابل للتحميل
+    async function recordAndDownload() {
+        const text = textInput.value;
+        if (!text.trim()) return alert("المرجو كتابة نص أولاً!");
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const player = document.getElementById('audioPlayer');
+                player.src = audioUrl;
+                player.style.display = 'block';
+
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = 'dark-voice-audio.wav';
+                a.click();
+            };
+
+            mediaRecorder.start();
+            speakText();
+
+            // إيقاف التسجيل عند انتهاء القراءة
+            const checkSpeaking = setInterval(() => {
+                if (!window.speechSynthesis.speaking) {
+                    mediaRecorder.stop();
+                    clearInterval(checkSpeaking);
+                }
+            }, 500);
+
+        } catch (err) {
+            alert("يلزم السماح بالوصول للمايكروفون لتسجيل الصوت وتصديره كملف.");
+        }
     }
 </script>
 
